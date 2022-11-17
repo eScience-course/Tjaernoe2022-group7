@@ -49,6 +49,11 @@ def fix_units(ds):
     ds['ccn'] = ds['ccn'].assign_attrs(units='cm$^{-3}$')
     return ds
 
+def add_attrs(ds):
+    ds['pr'] = ds['pr'].assign_attrs(units='mm/year')
+    ds['ts'] = ds['ts'].assign_attrs(units='C$^\circ$')
+    ds['ccn'] = ds['ccn'].assign_attrs(units='cm$^{-3}$')
+    return ds
 
 
 def annual(ds):
@@ -76,7 +81,7 @@ def plot_map(ds_var, title, reverse=False, levels=6, extent=[-180,180,90,50], cm
             cmap=cmap
     
     sat_proj = ccrs.NorthPolarStereo()
-    fig, ax = plt.subplots(figsize=(7,7),subplot_kw={'projection':sat_proj})
+    fig, ax = plt.subplots(figsize=(5,5),subplot_kw={'projection':sat_proj})
     ds_var.plot(facecolor="gray",
         ax = ax,
         cbar_kwargs={
@@ -96,6 +101,31 @@ def plot_map(ds_var, title, reverse=False, levels=6, extent=[-180,180,90,50], cm
     ax.coastlines()
     ax.set_title(title, fontweight='bold', fontsize=15)
     fig.tight_layout()
+    
+
+def plot_seasons_map(ds, var, seasons, label, levels, cmap='RdBu'):
+    # Plotting seasonal differences (4xco2-piControl) for different variables  
+    
+    sat_proj = ccrs.NorthPolarStereo()
+    fig, axs = plt.subplots(nrows=2, ncols=2,figsize=(8,8),subplot_kw={'projection':sat_proj})    
+
+    axs=axs.flatten()
+
+
+    for i,season in enumerate(seasons):
+            # Contour plot
+            cs=axs[i].contourf(ds.lon, ds.lat, ds[var].sel(season=season),
+                              transform = ccrs.PlateCarree(),
+                              cmap=cmap, levels=levels)
+
+            axs[i].set_title(season, fontweight='bold', fontsize=10)
+            axs[i].coastlines()
+            axs[i].set_extent([-180,180,90,50], ccrs.PlateCarree())
+            axs[i].gridlines(draw_labels=True)
+
+    cax = fig.add_axes([.04, .09, .9, .04])
+    plt.colorbar(cs, cax=cax, orientation='horizontal', label=label) 
+    plt.subplots_adjust(left=0, bottom=0.2, right=1, top=0.9, wspace=0.1, hspace=0.4)
 
 
 
